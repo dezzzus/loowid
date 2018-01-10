@@ -69,6 +69,7 @@ function getSessionId(req,secret) {
     		list[parts.shift().trim()] = unescape(parts.join('='));
     	});
     }
+	logger.info(req);
     return (list.jsessionid && secret)?signature.unsign(list.jsessionid.replace(prefix,''),secret):getSocketUrl(req);
 }
 

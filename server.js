@@ -65,7 +65,7 @@ if (!isOpenShift() && defaultPort) {
 		defaultPort = false;
 	}
 }
-var ipaddr = process.env.OPENSHIFT_NODEJS_IP || process.env.OPENSHIFT_INTERNAL_IP ||'0.0.0.0';
+var ipaddr = process.env.OPENSHIFT_NODEJS_IP || process.env.OPENSHIFT_INTERNAL_IP || '127.0.0.1';
 var wserver = sserver?sserver:server;
 
 var sessionSecret = crypto.randomBytes(16).toString('hex');
@@ -143,7 +143,8 @@ wsevents.initListener(serverId,function(event) {
 // Load mongoose modules
 var mongoose = require('mongoose');
 
-var uristring = process.env.MONGOLAB_URI || process.env.MONGOHQ_URL	|| 'mongodb://localhost/loowid'+(isRunningTests()?'-test':'');
+var uristring = process.env.MONGOLAB_URI || process.env.MONGOHQ_URL	|| 'mongodb://127.0.0.1:27017/loowid'+(isRunningTests()?'-test':'');
+logger.info (uristring);
 var safeUriString = uristring;
 // if OPENSHIFT env variables are present, use the available connection info:
 if (process.env.OPENSHIFT_MONGODB_DB_PASSWORD) {
@@ -169,7 +170,9 @@ db.on('error',function(err) {
 	logger.error('ERROR connecting to: ' + safeUriString + '. ' + err);
 });
 // Add keepAlive to db connection
-mongoose.connect(uristring,{server:{'auto_reconnect':true,socketOptions:{keepAlive: 1}},replset:{socketOptions:{keepAlive: 1}}});
+//mongoose.connect(uristring,{server:{'auto_reconnect':true,socketOptions:{keepAlive: 1}},replset:{socketOptions:{keepAlive: 1}}});
+mongoose.connect(uristring);
+logger.info ('mongodb connecting trying!');
 
 /*function isMobile(req) {
 	return (/mobile/i.test(req.headers['user-agent']));
@@ -239,12 +242,12 @@ app.configure(function() {
 	app.use(passport.initialize());
 	app.use(passport.session());
 	app.use(express.cookieParser());
-	//app.use(express.session({secret:'Secret'}));
-	app.use(express.session({
+	app.use(express.session({secret:'Secret'}));
+	/*app.use(express.session({
 		store:new MongoStore({'mongoose_connection':mongoose.connection},function(){logger.info('Session store connected !!');}),
 		cookie: { maxAge : null }, // Browser-Session Cookie
 		key:'jsessionid',
-		secret:sessionSecret}));
+		secret:sessionSecret}));*/
 	app.use(express.bodyParser());
 	var csrf = express.csrf();
 	app.use(function(req,res,next){
@@ -474,10 +477,12 @@ if (isOpenShift()) {
 			res.setHeader('X-FRAME-OPTIONS','DENY');
 			res.redirect('https://' + req.host + req.url);
 		} else {
+logger.info ('entering homepage');
 			if (isLessIE9(req)) {
 				res.setHeader('X-FRAME-OPTIONS','DENY');
 				res.sendfile(__dirname + '/public/landing.html');
 			} else {
+logger.info('building page');
 				req.session._usrid = getUsrId(req);
 				res.setHeader('X-FRAME-OPTIONS','SAMEORIGIN');
 				res.render('index.jade', {
@@ -496,15 +501,18 @@ if (isOpenShift()) {
 	logger.info('Running non-openshift environment !!');
 	// Local redirect
 	app.get('/', function(req, res) {
+logger.info('showing home page');
 		var wsport = getReqWSPort(req);
 		if ((req.headers['x-forwarded-proto'] && req.headers['x-forwarded-proto'] !== 'https') || (req.protocol === 'http' && defaultPort)) {
 			res.setHeader('X-FRAME-OPTIONS','DENY');
 			res.redirect('https://' + req.host + (sport!==443?':'+sport:'') + req.url);
 		} else {
+logger.info('showing home page 2');
 			if (isLessIE9(req)) {
 				res.setHeader('X-FRAME-OPTIONS','DENY');
 				res.sendfile(__dirname + '/public/landing.html');
 			} else {
+logger.info('showing home page 3');
 				req.session._usrid = getUsrId(req);
 				res.setHeader('X-FRAME-OPTIONS','SAMEORIGIN');
 				res.render('index.jade', {
@@ -516,6 +524,7 @@ if (isOpenShift()) {
 					port: ':' + (process.env.WS_PORT || wsport),
 					usrid: req.session._usrid
 				});
+logger.info('showing home page 4');
 			}
 		}
 	});
