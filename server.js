@@ -18,7 +18,7 @@ var isRunningTests = function() {
 };
 
 var defaultPort = isNaN(process.argv[2]) && !isRunningTests();
-var portvalue = process.env.LOOWID_HTTP_PORT || 80;
+var portvalue = process.env.LOOWID_HTTP_PORT || 3000;
 if (!defaultPort) {
 	portvalue = !isNaN(process.argv[2])?(process.argv[2]-0):process.env.JASMINE_PORT;
 }
@@ -65,7 +65,7 @@ if (!isOpenShift() && defaultPort) {
 		defaultPort = false;
 	}
 }
-var ipaddr = process.env.OPENSHIFT_NODEJS_IP || process.env.OPENSHIFT_INTERNAL_IP || '127.0.0.1';
+var ipaddr = process.env.OPENSHIFT_NODEJS_IP || process.env.OPENSHIFT_INTERNAL_IP || '192.168.1.109';
 var wserver = sserver?sserver:server;
 
 var sessionSecret = crypto.randomBytes(16).toString('hex');
@@ -172,7 +172,6 @@ db.on('error',function(err) {
 // Add keepAlive to db connection
 //mongoose.connect(uristring,{server:{'auto_reconnect':true,socketOptions:{keepAlive: 1}},replset:{socketOptions:{keepAlive: 1}}});
 mongoose.connect(uristring);
-logger.info ('mongodb connecting trying!');
 
 /*function isMobile(req) {
 	return (/mobile/i.test(req.headers['user-agent']));
@@ -477,12 +476,10 @@ if (isOpenShift()) {
 			res.setHeader('X-FRAME-OPTIONS','DENY');
 			res.redirect('https://' + req.host + req.url);
 		} else {
-logger.info ('entering homepage');
 			if (isLessIE9(req)) {
 				res.setHeader('X-FRAME-OPTIONS','DENY');
 				res.sendfile(__dirname + '/public/landing.html');
 			} else {
-logger.info('building page');
 				req.session._usrid = getUsrId(req);
 				res.setHeader('X-FRAME-OPTIONS','SAMEORIGIN');
 				res.render('index.jade', {
@@ -501,18 +498,15 @@ logger.info('building page');
 	logger.info('Running non-openshift environment !!');
 	// Local redirect
 	app.get('/', function(req, res) {
-logger.info('showing home page');
 		var wsport = getReqWSPort(req);
 		if ((req.headers['x-forwarded-proto'] && req.headers['x-forwarded-proto'] !== 'https') || (req.protocol === 'http' && defaultPort)) {
 			res.setHeader('X-FRAME-OPTIONS','DENY');
 			res.redirect('https://' + req.host + (sport!==443?':'+sport:'') + req.url);
 		} else {
-logger.info('showing home page 2');
 			if (isLessIE9(req)) {
 				res.setHeader('X-FRAME-OPTIONS','DENY');
 				res.sendfile(__dirname + '/public/landing.html');
 			} else {
-logger.info('showing home page 3');
 				req.session._usrid = getUsrId(req);
 				res.setHeader('X-FRAME-OPTIONS','SAMEORIGIN');
 				res.render('index.jade', {
@@ -524,7 +518,6 @@ logger.info('showing home page 3');
 					port: ':' + (process.env.WS_PORT || wsport),
 					usrid: req.session._usrid
 				});
-logger.info('showing home page 4');
 			}
 		}
 	});
