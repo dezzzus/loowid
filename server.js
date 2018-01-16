@@ -18,7 +18,7 @@ var isRunningTests = function() {
 };
 
 var defaultPort = isNaN(process.argv[2]) && !isRunningTests();
-var portvalue = process.env.LOOWID_HTTP_PORT || 3000;
+var portvalue = process.env.LOOWID_HTTP_PORT || 85;
 if (!defaultPort) {
 	portvalue = !isNaN(process.argv[2])?(process.argv[2]-0):process.env.JASMINE_PORT;
 }
@@ -28,7 +28,7 @@ var isOpenShift = function() {
 };
 
 var port = process.env.OPENSHIFT_NODEJS_PORT ||  process.env.OPENSHIFT_INTERNAL_PORT || portvalue;
-var sport = process.env.LOOWID_HTTPS_PORT || 443;
+var sport = process.env.LOOWID_HTTPS_PORT || 3000;
 var sserver;
 
 i18n.init({
